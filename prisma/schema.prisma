@@ -1,0 +1,213 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  GUEST
+  USER
+  MASTER
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELED
+  COMPLETED
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  telegramId    String    @unique
+  username      String?
+  firstName     String    @default("")
+  lastName      String    @default("")
+  role          UserRole  @default(USER)
+  avatar        String?
+  createdAt     DateTime  @default(now())
+  isPremium     Boolean   @default(false)
+  premiumEndDate DateTime?
+
+  city          City?     @relation(fields: [cityId], references: [id])
+  cityId        Int?
+  district      District? @relation(fields: [districtId], references: [id])
+  districtId    Int?
+
+  bookings      Booking[]
+  favorites     Favorite[]
+  reviews       Review[]
+  masterProfile MasterProfile?
+
+  @@map("users")
+}
+
+model MasterProfile {
+  id          Int       @id @default(autoincrement())
+  bio         String?
+  address     String
+  isVerified  Boolean   @default(false)
+  rating      Float?    @default(0)
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User      @relation(fields: [userId], references: [id])
+  userId      Int       @unique
+
+  city        City      @relation(fields: [cityId], references: [id])
+  cityId      Int
+  district    District  @relation(fields: [districtId], references: [id])
+  districtId  Int
+
+  services    Service[]
+  bookings    Booking[]
+  reviews     Review[]
+  daySchedules DaySchedule[]
+  settings     MasterSettings?
+
+  @@map("master_profiles")
+}
+
+model DaySchedule {
+  id          Int           @id @default(autoincrement())
+  masterId    Int
+  master      MasterProfile @relation(fields: [masterId], references: [id])
+  date        DateTime      @db.Date
+  workHours   Json         // { start: string, end: string }
+  breaks      Json?        // [{ start: string, end: string }]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([masterId, date])
+  @@map("day_schedules")
+}
+
+model MasterSettings {
+  id              Int           @id @default(autoincrement())
+  masterId        Int           @unique
+  master          MasterProfile @relation(fields: [masterId], references: [id])
+  
+  bufferTime      Int           @default(15)  // Буферное время между записями (в минутах)
+  cancelDeadline  Int           @default(24)  // За сколько часов можно отменить (в часах)
+  autoConfirm     Boolean       @default(false) // Автоматическое подтверждение записей
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("master_settings")
+}
+
+model City {
+  id         Int       @id @default(autoincrement())
+  name       String    @unique
+  users      User[]
+  districts  District[]
+  masters    MasterProfile[]
+
+  @@map("cities")
+}
+
+model District {
+  id         Int       @id @default(autoincrement())
+  name       String
+  cityId     Int
+  city       City      @relation(fields: [cityId], references: [id])
+  users      User[]
+  masters    MasterProfile[]
+
+  @@unique([name, cityId])
+  @@map("districts")
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  slug        String    @unique
+  order       Int       @default(0)
+  parentId    Int?     
+  parent      Category? @relation("SubCategories", fields: [parentId], references: [id])
+  children    Category[] @relation("SubCategories")
+  services    Service[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("categories")
+}
+
+model Service {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String
+  price       Decimal
+  duration    Int
+  image       String?
+  viewsCount  Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  master      MasterProfile @relation(fields: [masterId], references: [id])
+  masterId    Int
+  category    Category     @relation(fields: [categoryId], references: [id])
+  categoryId  Int
+
+  bookings    Booking[]
+  favorites   Favorite[]
+  reviews     Review[]
+
+  @@map("services")
+}
+
+model Booking {
+  id              Int           @id @default(autoincrement())
+  bookingDateTime DateTime
+  status          BookingStatus @default(PENDING)
+  cancelDeadline  DateTime      // Крайний срок для отмены
+  notes           String?       // Заметки к записи
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  user        User          @relation(fields: [userId], references: [id])
+  userId      Int
+  service     Service       @relation(fields: [serviceId], references: [id])
+  serviceId   Int
+  master      MasterProfile @relation(fields: [masterId], references: [id])
+  masterId    Int
+
+  @@map("bookings")
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  service   Service  @relation(fields: [serviceId], references: [id])
+  serviceId Int
+
+  @@unique([userId, serviceId])
+  @@map("favorites")
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User          @relation(fields: [userId], references: [id])
+  userId    Int
+  service   Service       @relation(fields: [serviceId], references: [id])
+  serviceId Int
+  master    MasterProfile @relation(fields: [masterId], references: [id])
+  masterId  Int
+
+  @@map("reviews")
+}

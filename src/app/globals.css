@@ -1,0 +1,299 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html, body {
+    @apply h-full w-full overscroll-none;
+    /* Предотвращаем резиновый эффект скролла в iOS */
+    -webkit-overflow-scrolling: touch;
+    /* Улучшаем производительность рендеринга на мобильных */
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    
+    /* Для Telegram Mini App */
+    touch-action: pan-y;
+    /* Для устранения системных жестов и улучшения UX */
+    overscroll-behavior: none;
+  }
+  
+  /* Убираем синее выделение при касании ссылок и кнопок */
+  a, button, input, textarea, select {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Отключаем перетаскивание изображений */
+  img {
+    -webkit-user-drag: none;
+    user-drag: none;
+  }
+}
+
+/* Интеграция и оптимизация для Telegram Mini App */
+@layer components {
+  /* Адаптация к темам Telegram */
+  .telegram-light {
+    @apply bg-white text-gray-900;
+  }
+  
+  .telegram-dark {
+    @apply bg-gray-900 text-white;
+  }
+  
+  /* Нижняя навигация в стиле Telegram */
+  .tg-bottom-nav {
+    @apply fixed bottom-0 left-0 right-0 border-t bg-white dark:bg-gray-900 shadow-md z-50;
+  }
+  
+  .tg-bottom-nav-item {
+    @apply flex flex-col items-center justify-center p-2 text-sm text-gray-600 dark:text-gray-400;
+  }
+  
+  .tg-bottom-nav-item.active {
+    @apply text-blue-500 dark:text-blue-400;
+  }
+  
+  /* Кнопки в стиле Telegram */
+  .tg-button {
+    @apply rounded-lg px-4 py-2 font-medium transition-all duration-200;
+  }
+  
+  .tg-button-primary {
+    @apply bg-blue-500 text-white hover:bg-blue-600;
+  }
+  
+  .tg-button-secondary {
+    @apply bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700;
+  }
+  
+  /* Карточки в стиле Telegram */
+  .tg-card {
+    @apply rounded-lg bg-white dark:bg-gray-800 shadow-sm overflow-hidden;
+  }
+}
+
+/* Стили для календаря */
+.rdp {
+  margin: 0;
+}
+
+.rdp-month {
+  background-color: white;
+  border-radius: 8px;
+  width: 100%;
+}
+
+/* Медиа-запрос для больших экранов */
+@media (min-width: 768px) {
+  .rdp-month {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+}
+
+.rdp-caption {
+  min-height: 2.5rem;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.rdp-caption_label {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  padding: 0 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.rdp-nav {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: space-between;
+  padding: 0 0.5rem;
+}
+
+.rdp-nav_button {
+  color: var(--foreground);
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rdp-nav_button:hover {
+  background-color: #f3f4f6;
+}
+
+.rdp-button:focus {
+  outline: 2px solid #2563eb !important;
+  outline-offset: 2px !important;
+}
+
+.rdp-table {
+  margin: 0.5rem 0 0;
+  max-width: 100%;
+}
+
+.rdp-head_cell {
+  font-weight: 500;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  padding: 0.5rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.rdp-tbody {
+  border-top: 1px solid #e5e7eb;
+}
+
+.rdp-cell {
+  padding: 0;
+  text-align: center;
+}
+
+.rdp-day {
+  margin: 0;
+  width: 36px;
+  height: 36px;
+  font-size: 0.875rem;
+  border-radius: 9999px;
+}
+
+.rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled) {
+  background-color: #f3f4f6 !important;
+}
+
+.rdp-day_today {
+  font-weight: 600 !important;
+  color: #2563eb !important;
+}
+
+.rdp-day_selected {
+  background-color: #2563eb !important;
+  color: white !important;
+}
+
+.rdp-day_selected:hover {
+  background-color: #1d4ed8;
+}
+
+.rdp-day_disabled {
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+}
+.rdp-day_outside {
+  color: #9ca3af !important;
+  opacity: 0.5 !important;
+}
+
+/* Специальные стили для рабочего календаря */
+.rdp-day.working {
+  background-color: #dbeafe;
+}
+
+.rdp-day.working:hover {
+  background-color: #bfdbfe;
+}
+
+.rdp-day.has-bookings {
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.rdp-day.has-bookings:hover {
+  background-color: #bfdbfe;
+}
+
+/* Для выходных дней */
+.rdp-day_weekend {
+  color: #ef4444;
+}
