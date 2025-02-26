@@ -18,7 +18,8 @@ export function setClientToken(token: string): void {
     return; // Ничего не делаем на сервере
   }
   console.log('Setting session token:', token);
-  document.cookie = `session_token=${token}; path=/; max-age=86400; SameSite=Strict`; // 24 часа
+  // Устанавливаем secure и SameSite=None для работы в iframe
+  document.cookie = `session_token=${token}; path=/; max-age=2592000; SameSite=None${window.location.protocol === 'https:' ? '; Secure' : ''}`; // 30 дней
 }
 
 export function removeClientToken(): void {
@@ -27,5 +28,5 @@ export function removeClientToken(): void {
     return; // Ничего не делаем на сервере
   }
   console.log('Removing session token');
-  document.cookie = 'session_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  document.cookie = 'session_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=None; Secure';
 }

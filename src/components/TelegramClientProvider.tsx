@@ -73,16 +73,40 @@ export function TelegramClientProvider({ children }: { children: ReactNode }) {
       let userData = webAppInstance?.initDataUnsafe?.user;
 
       if (!userData && window.location.hash) {
+        // Пытаемся извлечь данные пользователя из хеша URL
         const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
         const tgWebAppData = hashParams.get('tgWebAppData');
         if (tgWebAppData) {
           const decodedData = decodeURIComponent(tgWebAppData);
           const userMatch = decodedData.match(/user=([^&]+)/);
           if (userMatch) {
-            const userJson = decodeURIComponent(userMatch[1]);
-            userData = JSON.parse(userJson);
-            console.log('User data parsed from hash:', userData);
+            try {
+              const userJson = decodeURIComponent(userMatch[1]);
+              userData = JSON.parse(userJson);
+              console.log('User data parsed from hash:', userData);
+            } catch (e) {
+              console.error('Error parsing user data from hash:', e);
+            }
           }
+        }
+      }
+
+      // Проверка на Telegram Desktop и другие платформы
+      if (!userData && typeof window.Telegram !== 'undefined' && window.Telegram.WebView) {
+        try {
+          console.log('Attempting to use Telegram WebView API');
+          // Может понадобиться специфичная логика для WebView
+          const webViewData = window.Telegram.WebView.initData || '';
+          if (webViewData) {
+            const params = new URLSearchParams(webViewData);
+            const userParam = params.get('user');
+            if (userParam) {
+              userData = JSON.parse(decodeURIComponent(userParam));
+              console.log('User data parsed from WebView:', userData);
+            }
+          }
+        } catch (e) {
+          console.error('Error getting data from WebView:', e);
         }
       }
 

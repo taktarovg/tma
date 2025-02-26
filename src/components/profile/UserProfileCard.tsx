@@ -1,15 +1,14 @@
 // src/components/profile/UserProfileCard.tsx
 'use client';
 
-'use client';
-
 import { User, City, District, MasterProfile, Service } from '@prisma/client';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Edit, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/Avatar';
-import { useRouter } from 'next/navigation'; // Добавляем для навигации
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 interface UserProfileCardProps {
   user: User & {
@@ -22,11 +21,16 @@ interface UserProfileCardProps {
 }
 
 export function UserProfileCard({ user }: UserProfileCardProps) {
-  const router = useRouter(); // Инициализируем роутер для навигации
+  const router = useRouter();
   const location = [
     user.city?.name,
     user.district?.name,
   ].filter(Boolean).join(', ');
+
+  // Добавляем логирование для отладки
+  useEffect(() => {
+    console.log('UserProfileCard - Mounted, user:', user);
+  }, [user]);
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
@@ -152,3 +156,5 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
     </div>
   );
 }
+
+export default UserProfileCard;

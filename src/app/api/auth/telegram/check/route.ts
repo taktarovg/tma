@@ -4,8 +4,16 @@ import { NextResponse } from 'next/server';
 export async function GET() {
     try {
         // Здесь можно добавить проверку авторизации или состояния сервера
-        return NextResponse.json({ status: 'ok' }, { status: 200 });
+        console.log('Telegram API check endpoint called');
+        return NextResponse.json({ 
+            status: 'ok',
+            timestamp: new Date().toISOString() 
+        }, { status: 200 });
     } catch (error) {
-        return NextResponse.json({ error: 'Server error' }, { status: 500 });
+        console.error('Server check error:', error);
+        return NextResponse.json({ 
+            error: 'Server error',
+            message: error instanceof Error ? error.message : 'Unknown error' 
+        }, { status: 500 });
     }
 }

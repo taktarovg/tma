@@ -2,6 +2,7 @@
 import { sign, verify } from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { prisma } from './prisma';
+import { verifyTokenInEdge } from './edge-jwt';
 
 /**
  * Получает сессию пользователя из токена в cookies или хедере авторизации
@@ -34,7 +35,21 @@ export async function getSession(request: Request) {
       throw new Error('JWT_SECRET is not defined in environment variables');
     }
     
-    const decoded = verify(sessionToken, secret) as { userId: number };
+    let decoded;
+    
+    try {
+      // Стандартная проверка JWT-токена
+      decoded = verify(sessionToken, secret) as { userId: number };
+    } catch (e) {
+      console.log('Standard token verification failed in getSession, trying edge method:', e);
+      // Если стандартная проверка не сработала, используем альтернативный метод
+      decoded = verifyTokenInEdge(sessionToken, secret);
+    }
+
+    if (!decoded || !decoded.userId) {
+      console.log('Token decoded but no userId found');
+      return null;
+    }
 
     // Используем Prisma для получения данных пользователя
     const user = await prisma.user.findUnique({

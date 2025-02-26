@@ -1,4 +1,4 @@
-// src/hooks/useWebAppBackButton.ts - [update]
+// src/hooks/useWebAppBackButton.ts
 'use client';
 
 import { useEffect, useCallback, useState, useRef } from 'react';
@@ -39,12 +39,14 @@ export function useWebAppBackButton({
       const webApp = getWebApp();
 
       if (!webApp?.BackButton) {
-        throw new Error('BackButton не доступен');
+        console.log('BackButton is not available in this environment');
+        return;
       }
 
       backButtonRef.current = webApp.BackButton;
       setIsReady(true);
     } catch (err) {
+      console.error('BackButton initialization error:', err);
       setError(err instanceof Error ? err : new Error('Ошибка инициализации BackButton'));
       setIsReady(false);
     }
@@ -63,13 +65,19 @@ export function useWebAppBackButton({
       }
 
       if (!preventDefaultNavigation) {
-        router.back();
+        // Используем более надежное переключение страниц
+        setTimeout(() => {
+          router.back();
+        }, 100);
       }
     } catch (err) {
       console.error('BackButton error:', err);
       setError(err instanceof Error ? err : new Error('Ошибка при навигации назад'));
     } finally {
-      isNavigatingRef.current = false;
+      // Небольшая задержка для предотвращения быстрых повторных нажатий
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 300);
     }
   }, [onBack, preventDefaultNavigation, router]);
 
@@ -81,7 +89,10 @@ export function useWebAppBackButton({
     try {
       if (enabled) {
         backButton.show();
-        backButton.onClick(handleBack);
+        // В некоторых версиях SDK могут быть проблемы с прослушиванием события
+        if (typeof backButton.onClick === 'function') {
+          backButton.onClick(handleBack);
+        }
         setIsVisible(true);
       } else {
         backButton.hide();
@@ -95,7 +106,9 @@ export function useWebAppBackButton({
     return () => {
       try {
         backButton.hide();
-        backButton.offClick(handleBack);
+        if (typeof backButton.offClick === 'function') {
+          backButton.offClick(handleBack);
+        }
         setIsVisible(false);
       } catch (err) {
         console.error('Error cleaning up BackButton:', err);
@@ -145,15 +158,25 @@ export function useWebAppClosingConfirmation(enabled: boolean = true) {
     const webApp = getWebApp();
 
     if (webApp) {
-      if (enabled) {
-        webApp.enableClosingConfirmation?.();
-      } else {
-        webApp.disableClosingConfirmation?.();
+      try {
+        if (enabled && webApp.enableClosingConfirmation) {
+          webApp.enableClosingConfirmation();
+        } else if (webApp.disableClosingConfirmation) {
+          webApp.disableClosingConfirmation();
+        }
+      } catch (e) {
+        console.log('Error with closing confirmation:', e);
       }
     }
 
     return () => {
-      webApp?.disableClosingConfirmation?.();
+      try {
+        if (webApp?.disableClosingConfirmation) {
+          webApp.disableClosingConfirmation();
+        }
+      } catch (e) {
+        console.log('Error disabling closing confirmation:', e);
+      }
     };
   }, [enabled]);
 }

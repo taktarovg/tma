@@ -1,3 +1,4 @@
+// src/hooks/useTelegramAuth.ts
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -17,7 +18,7 @@ export function useTelegramAuth(options: UseTelegramAuthOptions = {}) {
   const {
     onSuccess,
     onError,
-    redirectOnSuccess = '/',
+    redirectOnSuccess = '/profile', // Изменено: перенаправляем на профиль по умолчанию
     redirectOnError = '/'
   } = options;
 
@@ -29,6 +30,7 @@ export function useTelegramAuth(options: UseTelegramAuthOptions = {}) {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [redirectAttempted, setRedirectAttempted] = useState(false);
 
   // Эффект для отслеживания состояния авторизации
   useEffect(() => {
@@ -60,23 +62,34 @@ export function useTelegramAuth(options: UseTelegramAuthOptions = {}) {
       });
 
       // Если задан редирект для ошибки, выполняем его
-      if (redirectOnError) {
-        router.push(redirectOnError);
+      if (redirectOnError && !redirectAttempted) {
+        setRedirectAttempted(true);
+        // Используем setTimeout для обеспечения надежного перехода
+        setTimeout(() => {
+          router.push(redirectOnError);
+        }, 100);
       }
     }
   }, [
     isReady, isInTelegram, telegramUser, telegramError,
     user, isLoading, authError, isAuthenticating, isSuccess,
     onSuccess, onError, redirectOnSuccess, redirectOnError,
-    router, toast
+    router, toast, redirectAttempted
   ]);
 
   // Эффект для редиректа после успешной авторизации
   useEffect(() => {
-    if (isSuccess && redirectOnSuccess && !isAuthenticating) {
-      router.push(redirectOnSuccess);
+    if (isSuccess && redirectOnSuccess && !redirectAttempted && !isAuthenticating) {
+      console.log('Redirecting to profile after auth success');
+      setRedirectAttempted(true);
+      
+      // Используем более надежный способ перенаправления через setTimeout
+      setTimeout(() => {
+        console.log('Executing redirect to:', redirectOnSuccess);
+        window.location.href = redirectOnSuccess; // Принудительное перенаправление через window.location
+      }, 300);
     }
-  }, [isSuccess, redirectOnSuccess, isAuthenticating, router]);
+  }, [isSuccess, redirectOnSuccess, isAuthenticating, redirectAttempted]);
 
   return {
     isAuthenticated: !!user,
@@ -84,7 +97,14 @@ export function useTelegramAuth(options: UseTelegramAuthOptions = {}) {
     isSuccess,
     error,
     telegramUser,
-    user
+    user,
+    // Добавляем функцию для явного перенаправления
+    redirectToProfile: () => {
+      if (user) {
+        console.log('Manually redirecting to profile');
+        window.location.href = '/profile';
+      }
+    }
   };
 }
 

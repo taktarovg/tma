@@ -57,7 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Очистка старого токена при первой загрузке
   useEffect(() => {
-    removeClientToken();
+    // Не удаляем токен при загрузке, чтобы сохранить сессию
+    // removeClientToken();
   }, []);
 
   // Выполняем автоматическую авторизацию при наличии данных пользователя Telegram
@@ -100,9 +101,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setClientToken(token);
 
         if (newUser.isNewUser || !newUser.city || !newUser.district) {
+          console.log('New user or incomplete profile, redirecting to profile edit');
           router.push('/profile/edit');
         } else {
-          router.push('/services'); // Перенаправляем на защищённый маршрут после авторизации
+          console.log('User authenticated, redirecting to profile');
+          // Изменено: перенаправляем на профиль вместо services
+          router.push('/profile');
         }
       } catch (err) {
         console.error('Auth error:', err);

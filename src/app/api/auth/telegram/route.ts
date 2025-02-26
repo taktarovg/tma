@@ -130,7 +130,12 @@ export async function POST(request: NextRequest) {
     console.log('Session created:', !!token);
 
     // Возвращаем успешный ответ
-    return NextResponse.json(response, { status: 200 });
+    return NextResponse.json(response, { 
+      status: 200,
+      headers: {
+        'Set-Cookie': `session_token=${token}; Path=/; Max-Age=2592000; SameSite=None; ${request.url.startsWith('https') ? 'Secure' : ''}`
+      }
+    });
   } catch (error) {
     console.error('Auth error:', error);
 

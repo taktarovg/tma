@@ -17,6 +17,11 @@ export function getWebApp(): TelegramWebApp | null {
   }
 
   try {
+    // Если уже есть экземпляр, возвращаем его
+    if (telegramWebApp) {
+      return telegramWebApp;
+    }
+
     console.log('Initializing Telegram WebApp');
     console.log('Telegram global object:', typeof window.Telegram);
     console.log('WebApp object:', typeof window.Telegram?.WebApp);
@@ -31,20 +36,20 @@ export function getWebApp(): TelegramWebApp | null {
     const tgWebAppData = tgWebAppDataFromSearch || tgWebAppDataFromHash;
     console.log('tgWebAppData in URL (search or hash):', !!tgWebAppData);
 
-    if (!telegramWebApp) {
-      const initResult = init({
-        debug: true,
-        checksIntegrity: false,
-      });
+    const initResult = init({
+      debug: process.env.NODE_ENV === 'development',
+      checksIntegrity: false,
+    });
 
-      // Проверяем, что initResult не undefined перед присвоением
-      if (initResult) {
-        telegramWebApp = initResult as TelegramWebApp;
-      } else if (tgWebAppData) {
-        console.log('No initData from SDK, parsing tgWebAppData manually');
-        const decodedData = decodeURIComponent(tgWebAppData);
-        const userMatch = decodedData.match(/user=([^&]+)/);
-        if (userMatch) {
+    // Проверяем, что initResult не undefined перед присвоением
+    if (initResult) {
+      telegramWebApp = initResult as TelegramWebApp;
+    } else if (tgWebAppData) {
+      console.log('No initData from SDK, parsing tgWebAppData manually');
+      const decodedData = decodeURIComponent(tgWebAppData);
+      const userMatch = decodedData.match(/user=([^&]+)/);
+      if (userMatch) {
+        try {
           const userJson = decodeURIComponent(userMatch[1]);
           const userData = JSON.parse(userJson);
           telegramWebApp = {
@@ -61,17 +66,81 @@ export function getWebApp(): TelegramWebApp | null {
             showPopup: (params: { message: string; buttons: Array<{ type: 'ok' | 'cancel'; text?: string }> }) => 
               Promise.resolve({ button_id: 'ok' }),
             BackButton: {
+              show: () => {},
               hide: () => {},
+              onClick: () => {},
+              offClick: () => {},
             },
             MainButton: {
+              setText: () => {},
+              setParams: () => {},
+              show: () => {},
               hide: () => {},
+              enable: () => {},
+              disable: () => {},
+              onClick: () => {},
+              offClick: () => {},
+              showProgress: () => {},
+              hideProgress: () => {},
             },
             hapticFeedback: {
-              notificationOccurred: (type: string) => console.log('Haptic feedback:', type),
+              impactOccurred: () => {},
+              notificationOccurred: () => {},
+              selectionChanged: () => {},
             },
-          } as TelegramWebApp;
+          } as unknown as TelegramWebApp;
           console.log('Manually set initDataUnsafe:', telegramWebApp.initDataUnsafe);
+        } catch (e) {
+          console.error('Error parsing user data from hash:', e);
         }
+      }
+    } else if (hasWebView) {
+      // Особая обработка для Telegram Desktop
+      try {
+        console.log('Using WebView fallback');
+        const webViewData = window.Telegram.WebView.initData || '';
+        const params = new URLSearchParams(webViewData);
+        const userParam = params.get('user');
+        
+        if (userParam) {
+          const userData = JSON.parse(decodeURIComponent(userParam));
+          telegramWebApp = {
+            initData: webViewData,
+            initDataUnsafe: { user: userData },
+            themeParams: {},
+            ready: () => console.log('WebView ready'),
+            close: () => window.Telegram.WebView.close(),
+            expand: () => {},
+            setHeaderColor: () => {},
+            setBackgroundColor: () => {},
+            showPopup: () => Promise.resolve({ button_id: 'ok' }),
+            BackButton: {
+              show: () => {},
+              hide: () => {},
+              onClick: () => {},
+              offClick: () => {},
+            },
+            MainButton: {
+              setText: () => {},
+              setParams: () => {},
+              show: () => {},
+              hide: () => {},
+              enable: () => {},
+              disable: () => {},
+              onClick: () => {},
+              offClick: () => {},
+              showProgress: () => {},
+              hideProgress: () => {},
+            },
+            hapticFeedback: {
+              impactOccurred: () => {},
+              notificationOccurred: () => {},
+              selectionChanged: () => {},
+            },
+          } as unknown as TelegramWebApp;
+        }
+      } catch (e) {
+        console.error('Error initializing from WebView:', e);
       }
     }
 

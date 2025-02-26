@@ -28,21 +28,7 @@ export function setToken(payload: TokenPayload): string {
 
 export function getToken(token: string): TokenPayload | null {
   try {
-    // Проверяем, что мы в Node.js Runtime (process существует)
-    if (typeof process === 'undefined') {
-      console.warn('Running in Edge Runtime, token verification not supported');
-      return null;
-    }
-
-    // Проверяем наличие модулей crypto и stream
-    try {
-      require('crypto');
-      require('stream');
-    } catch (error) {
-      console.error('Required Node.js modules (crypto/stream) are not available:', error);
-      return null;
-    }
-
+    // Упрощенная проверка без проверки на Node.js Runtime
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
     
     if (decoded && typeof decoded === 'object' && 'userId' in decoded && typeof decoded.userId === 'number') {

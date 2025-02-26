@@ -5,17 +5,24 @@ import { useRouter } from 'next/navigation';
 import { useTelegramClient } from '@/components/TelegramClientProvider';
 import { useAuthContext } from '@/providers/AuthProvider';
 import TelegramAutoAuth from '@/components/telegram/TelegramAutoAuth';
+import { redirectToProfile } from '@/lib/profile-redirect';
 
 export default function HomePage() {
   const router = useRouter();
   const { isReady, isInTelegram } = useTelegramClient();
   const { user, isLoading } = useAuthContext();
 
+  // Добавляем логирование для отладки
+  useEffect(() => {
+    console.log('HomePage render - isReady:', isReady, 'isInTelegram:', isInTelegram, 'user:', !!user, 'isLoading:', isLoading);
+  }, [isReady, isInTelegram, user, isLoading]);
+
   // Эффект для редиректа после успешной авторизации
   useEffect(() => {
     if (isReady && !isLoading && user) {
-      // Пользователь авторизован - перенаправляем на главную страницу сервисов
-      router.push('/services');
+      console.log('User authenticated, redirecting to profile page');
+      // Используем функцию надежного перенаправления
+      redirectToProfile();
     }
   }, [isReady, isLoading, user, router]);
 
@@ -51,14 +58,19 @@ export default function HomePage() {
     return <TelegramAutoAuth />;
   }
 
-  // Этот код не должен выполняться, так как мы должны
-  // перенаправиться на /services при успешной авторизации
+  // Добавляем кнопку для принудительного перенаправления
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
         <div className="mb-4 text-lg font-medium">
-          Перенаправление...
+          Перенаправление на профиль...
         </div>
+        <button 
+          onClick={() => redirectToProfile()}
+          className="px-4 py-2 bg-blue-500 text-white rounded-md mt-4"
+        >
+          Перейти вручную
+        </button>
       </div>
     </div>
   );

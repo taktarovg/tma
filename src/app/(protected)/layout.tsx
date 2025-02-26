@@ -25,6 +25,22 @@ export default function ProtectedLayout({
     }
   }, [user, isLoading, router, isReady, isInTelegram]);
 
+  // Добавляем задержку перед перенаправлением, чтобы дать время на инициализацию
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
+    if (!isLoading && !user) {
+      timeoutId = setTimeout(() => {
+        console.log('Redirecting to / after delay due to no user');
+        router.push('/');
+      }, 300);
+    }
+    
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [user, isLoading, router]);
+
   console.log('ProtectedLayout render - isLoading:', isLoading, 'isReady:', isReady, 'isInTelegram:', isInTelegram, 'user:', user);
 
   if (isLoading || !isReady) {

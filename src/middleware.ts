@@ -1,15 +1,8 @@
 // src/middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-
-// Динамический импорт серверного token.ts для API
-let serverTokenModule: typeof import('@/lib/token') | null = null;
-async function loadServerTokenModule() {
-  if (!serverTokenModule) {
-    serverTokenModule = await import('@/lib/token');
-  }
-  return serverTokenModule;
-}
+import { getToken } from './lib/token';
+import { verifyTokenInEdge } from './lib/edge-jwt';
 
 // Публичные маршруты, доступные без авторизации
 const publicRoutes = [
@@ -17,6 +10,8 @@ const publicRoutes = [
   '/api/auth/telegram',
   '/api/auth/telegram/check',
   '/api/categories',
+  '/login',
+  '/about',
 ];
 
 // Статические пути для ресурсов
@@ -30,37 +25,6 @@ const staticPaths = [
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   console.log('Middleware handling path:', pathname);
-
-  // Проверяем, что мы в Node.js Runtime
-  if (typeof process === 'undefined') {
-    console.error('Middleware is running in Edge Runtime, expected Node.js Runtime');
-    return NextResponse.next(); // Временно пропускаем, чтобы отладить
-  } else {
-    console.log('Middleware is running in Node.js Runtime');
-  }
-
-  // Проверяем наличие модулей crypto и stream
-  try {
-    const crypto = await import('crypto');
-    console.log('Crypto module is available in Node.js Runtime');
-  } catch (error) {
-    console.error('Crypto module is not available:', error);
-  }
-
-  try {
-    const stream = await import('stream');
-    console.log('Stream module is available in Node.js Runtime');
-  } catch (error) {
-    console.error('Stream module is not available:', error);
-  }
-
-  // Добавляем расширенное логирование заголовков
-  console.log('Middleware headers:', {
-    'user-agent': request.headers.get('user-agent'),
-    'x-telegram-mini-app': request.headers.get('x-telegram-mini-app'),
-    'x-telegram-web-app': request.headers.get('x-telegram-web-app'),
-    allHeaders: Object.fromEntries([...request.headers.entries()]),
-  });
 
   // Пропускаем статические файлы
   if (staticPaths.some(path => pathname.startsWith(path)) ||
@@ -92,12 +56,23 @@ export async function middleware(request: NextRequest) {
   const token = sessionToken || headerToken;
 
   let session = null;
+  const jwtSecret = process.env.JWT_SECRET || '';
+
   if (token) {
     try {
       console.log('Verifying token:', token);
-      // Для всех маршрутов (API и клиентских) используем серверную логику
-      const tokenModule = await loadServerTokenModule();
-      const payload = tokenModule.getToken(token);
+      // Пробуем разные способы проверки токена
+      let payload = null;
+      
+      try {
+        // Пробуем стандартную проверку
+        payload = getToken(token);
+      } catch (e) {
+        console.log('Standard token verification failed, trying edge method:', e);
+        // Если стандартная проверка не сработала, используем альтернативный метод
+        payload = verifyTokenInEdge(token, jwtSecret);
+      }
+      
       if (payload?.userId) {
         session = { userId: payload.userId };
         console.log('Valid session found:', session);
@@ -134,16 +109,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Если пользователь не авторизован и пытается получить доступ к защищённому маршруту (например, /services)
+  // Если пользователь не авторизован и пытается получить доступ к защищённому маршруту
   if (!session && !isPublicRoute) {
     console.log('Unauthorized access attempt');
 
     // В режиме Telegram Mini App возвращаем 401 вместо редиректа
     if (isTelegramMiniApp || isTelegramUserAgent) {
-      return NextResponse.json(
-        { error: 'Unauthorized', clientType: 'miniapp' },
-        { status: 401 }
-      );
+      // Для Telegram Mini App перенаправляем на корневой путь, где происходит автоавторизация
+      return NextResponse.redirect(new URL('/', request.url));
     }
 
     // Для веб-браузеров перенаправляем на корень
@@ -162,7 +135,6 @@ export async function middleware(request: NextRequest) {
 
 // Оптимизированный matcher для повышения производительности
 export const config = {
-  runtime: 'nodejs', // Явно указываем использование Node.js Runtime
   matcher: [
     '/services(.*)',
     '/master/bookings(.*)',

@@ -1,4 +1,4 @@
-// src/hooks/useWebAppMainButton.ts - [update]
+// src/hooks/useWebAppMainButton.ts
 'use client';
 
 import { useEffect, useCallback, useState, useRef } from 'react';
@@ -47,7 +47,8 @@ export function useWebAppMainButton({
       const webApp = getWebApp();
 
       if (!webApp?.MainButton) {
-        throw new Error('MainButton не доступен');
+        console.log('MainButton is not available in this environment');
+        return;
       }
 
       mainButtonRef.current = webApp.MainButton;
@@ -86,16 +87,7 @@ export function useWebAppMainButton({
       console.error('Error configuring MainButton:', err);
       setError(err instanceof Error ? err : new Error('Ошибка настройки MainButton'));
     }
-
-    return () => {
-      try {
-        mainButton.hide();
-        mainButton.offClick(onClick);
-      } catch (err) {
-        console.error('Error cleaning up MainButton:', err);
-      }
-    };
-  }, [text, color, textColor, isVisible, isActive, isReady, onClick]);
+  }, [text, color, textColor, isVisible, isActive, isReady]);
 
   // Обработчик клика с поддержкой асинхронных операций
   const handleClick = useCallback(async () => {
@@ -104,9 +96,16 @@ export function useWebAppMainButton({
 
     try {
       setIsLoading(true);
-      mainButton.showProgress();
-      mainButton.setText(loadingText);
-      mainButton.disable();
+      
+      // Пытаемся показать прогресс и изменить текст
+      try {
+        mainButton.showProgress();
+        mainButton.setText(loadingText);
+        mainButton.disable();
+      } catch (e) {
+        console.log('Error showing progress:', e);
+        // Продолжаем выполнение даже если не удалось показать прогресс
+      }
 
       await onClick();
     } catch (err) {
@@ -114,9 +113,13 @@ export function useWebAppMainButton({
       setError(err instanceof Error ? err : new Error('Ошибка при выполнении действия'));
     } finally {
       if (mainButton) {
-        mainButton.hideProgress();
-        mainButton.setText(originalText.current);
-        if (isActive) mainButton.enable();
+        try {
+          mainButton.hideProgress();
+          mainButton.setText(originalText.current);
+          if (isActive) mainButton.enable();
+        } catch (e) {
+          console.log('Error hiding progress:', e);
+        }
       }
       setIsLoading(false);
     }
@@ -127,10 +130,20 @@ export function useWebAppMainButton({
     const mainButton = mainButtonRef.current;
     if (!mainButton || !isReady) return;
 
-    mainButton.onClick(handleClick);
+    try {
+      mainButton.onClick(handleClick);
+    } catch (e) {
+      console.log('Error setting onClick handler:', e);
+    }
 
     return () => {
-      mainButton.offClick(handleClick);
+      try {
+        if (mainButton) {
+          mainButton.offClick(handleClick);
+        }
+      } catch (e) {
+        console.log('Error removing onClick handler:', e);
+      }
     };
   }, [handleClick, isReady]);
 
@@ -142,16 +155,28 @@ export function useWebAppMainButton({
     originalText.current = newText;
 
     if (!isLoading) {
-      mainButton.setText(newText);
+      try {
+        mainButton.setText(newText);
+      } catch (e) {
+        console.log('Error setting text:', e);
+      }
     }
   }, [isReady, isLoading]);
 
   const show = useCallback(() => {
-    mainButtonRef.current?.show();
+    try {
+      mainButtonRef.current?.show();
+    } catch (e) {
+      console.log('Error showing MainButton:', e);
+    }
   }, []);
 
   const hide = useCallback(() => {
-    mainButtonRef.current?.hide();
+    try {
+      mainButtonRef.current?.hide();
+    } catch (e) {
+      console.log('Error hiding MainButton:', e);
+    }
   }, []);
 
   const setLoadingState = useCallback((loading: boolean) => {
@@ -160,14 +185,18 @@ export function useWebAppMainButton({
 
     setIsLoading(loading);
 
-    if (loading) {
-      mainButton.showProgress();
-      mainButton.setText(loadingText);
-      mainButton.disable();
-    } else {
-      mainButton.hideProgress();
-      mainButton.setText(originalText.current);
-      if (isActive) mainButton.enable();
+    try {
+      if (loading) {
+        mainButton.showProgress();
+        mainButton.setText(loadingText);
+        mainButton.disable();
+      } else {
+        mainButton.hideProgress();
+        mainButton.setText(originalText.current);
+        if (isActive) mainButton.enable();
+      }
+    } catch (e) {
+      console.log('Error setting loading state:', e);
     }
   }, [isReady, isActive, loadingText]);
 
