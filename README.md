@@ -23,80 +23,6 @@
 - **Zod** для валидации данных
 - **JWT** для авторизации
 
-## Структура проекта
-
-```
-tma-mvp
-├─ prisma
-│  ├─ schema.prisma
-│  └─ migrations
-├─ src
-│  ├─ middleware.ts
-│  ├─ app
-│  │  ├─ favicon.ico
-│  │  ├─ globals.css
-│  │  ├─ layout.tsx
-│  │  ├─ page.tsx
-│  │  ├─ error.tsx
-│  │  ├─ not-found.tsx
-│  │  ├─ (protected)
-│  │  │  ├─ bookings
-│  │  │  ├─ favorites
-│  │  │  ├─ master
-│  │  │  ├─ profile
-│  │  │  ├─ services
-│  │  │  └─ layout.tsx
-│  │  ├─ api
-│  │  │  ├─ auth
-│  │  │  ├─ bookings
-│  │  │  ├─ categories
-│  │  │  ├─ favorites
-│  │  │  ├─ locations
-│  │  │  ├─ master
-│  │  │  ├─ profile
-│  │  │  ├─ services
-│  │  │  └─ upload
-│  ├─ components
-│  │  ├─ bookings
-│  │  ├─ favorites
-│  │  ├─ layout
-│  │  ├─ profile
-│  │  ├─ schedule
-│  │  ├─ services
-│  │  ├─ telegram
-│  │  ├─ ui
-│  │  ├─ TelegramClientProvider.tsx
-│  ├─ hooks
-│  │  ├─ useBookings.ts
-│  │  ├─ useFavorites.ts
-│  │  ├─ useFilters.ts
-│  │  ├─ useMasterBookings.ts
-│  │  ├─ useMasterSchedule.ts
-│  │  ├─ useTelegramAuth.ts
-│  │  ├─ useWebAppBackButton.ts
-│  │  ├─ useWebAppMainButton.ts
-│  │  └─ useTelegramUtils.ts
-│  ├─ lib
-│  │  ├─ date-utils.ts
-│  │  ├─ prisma.ts
-│  │  ├─ session.ts
-│  │  ├─ telegram-sdk.ts
-│  │  ├─ telegram.ts
-│  │  ├─ token.ts
-│  │  └─ utils.ts
-│  ├─ providers
-│  │  ├─ AuthProvider.tsx
-│  │  └─ QueryProvider.tsx
-│  ├─ store
-│  │  └─ auth.ts
-│  └─ types
-├─ eslint.config.mjs
-├─ next.config.js
-├─ package.json
-├─ postcss.config.js
-├─ tailwind.config.js
-└─ tsconfig.json
-```
 
 ## Настройка и запуск
 
@@ -182,3 +108,217 @@ npm run start
 ## Автоматическая авторизация
 
 При открытии приложения в Telegram Mini App происходит автоматическая авторизация пользователя. Если пользователь открывает приложение впервые, автоматически создается профиль пользователя с данными из Telegram.
+
+## Структура проекта
+
+
+```
+tma
+├─ tsconfig.json
+├─ prisma
+│  ├─ schema.prisma
+│  └─ migrations
+│     ├─ migration_lock.toml
+│     ├─ 20250211042623_tib_1102
+│     │  └─ migration.sql
+│     ├─ 20250211091551_update_user_model
+│     │  └─ migration.sql
+│     ├─ 20250212061716_update_schema_with_relations
+│     │  └─ migration.sql
+│     ├─ 20250213064524_update_categories_schema
+│     │  └─ migration.sql
+│     └─ 20250213073543_add_master_profile_fields
+│        └─ migration.sql
+├─ src
+│  ├─ middleware.ts
+│  ├─ app
+│  │  ├─ favicon.ico
+│  │  ├─ globals.css
+│  │  ├─ (protected)
+│  │  │  ├─ layout.tsx
+│  │  │  ├─ bookings
+│  │  │  │  ├─ loading.tsx
+│  │  │  │  └─ page.tsx
+│  │  │  ├─ favorites
+│  │  │  │  └─ page.tsx
+│  │  │  ├─ master
+│  │  │  │  ├─ bookings
+│  │  │  │  │  └─ page.tsx
+│  │  │  │  └─ schedule
+│  │  │  │     └─ page.tsx
+│  │  │  ├─ profile
+│  │  │  │  ├─ page.tsx
+│  │  │  │  └─ edit
+│  │  │  │     └─ page.tsx
+│  │  │  └─ services
+│  │  │     ├─ [id]
+│  │  │     │  ├─ page.tsx
+│  │  │     │  └─ book
+│  │  │     │     └─ page.tsx
+│  │  │     └─ create
+│  │  │        └─ page.tsx
+│  │  ├─ api
+│  │  │  ├─ auth
+│  │  │  │  ├─ logout
+│  │  │  │  │  └─ route.ts
+│  │  │  │  └─ telegram
+│  │  │  │     ├─ route.ts
+│  │  │  │     ├─ check
+│  │  │  │     │  └─ route.ts
+│  │  │  │     └─ telegram.ts
+│  │  │  ├─ bookings
+│  │  │  │  ├─ route.ts
+│  │  │  │  └─ [id]
+│  │  │  │     └─ route.ts
+│  │  │  ├─ categories
+│  │  │  │  └─ route.ts
+│  │  │  ├─ favorites
+│  │  │  │  ├─ route.ts
+│  │  │  │  └─ [id]
+│  │  │  │     └─ route.ts
+│  │  │  ├─ locations
+│  │  │  │  └─ route.ts
+│  │  │  ├─ master
+│  │  │  │  ├─ bookings
+│  │  │  │  │  ├─ route.ts
+│  │  │  │  │  └─ [id]
+│  │  │  │  │     └─ route.ts
+│  │  │  │  ├─ schedule
+│  │  │  │  │  ├─ route.ts
+│  │  │  │  │  └─ [date]
+│  │  │  │  │     ├─ post.ts
+│  │  │  │  │     └─ route.ts
+│  │  │  │  └─ settings
+│  │  │  │     └─ route.ts
+│  │  │  ├─ profile
+│  │  │  │  └─ route.ts
+│  │  │  ├─ services
+│  │  │  │  ├─ route.ts
+│  │  │  │  └─ [id]
+│  │  │  │     ├─ available-dates
+│  │  │  │     │  └─ route.ts
+│  │  │  │     └─ time-slots
+│  │  │  │        └─ route.ts
+│  │  │  └─ upload
+│  │  │     └─ route.ts
+│  │  ├─ layout.tsx
+│  │  ├─ page.tsx
+│  │  └─ error.tsx
+│  ├─ components
+│  │  ├─ bookings
+│  │  │  ├─ BookingCard.tsx
+│  │  │  ├─ BookingFilters.tsx
+│  │  │  ├─ BookingForm.tsx
+│  │  │  ├─ BookingList.tsx
+│  │  │  ├─ BookingSkeleton.tsx
+│  │  │  ├─ BookingStatusBadge.tsx
+│  │  │  ├─ Calendar.tsx
+│  │  │  ├─ ClientBookingsList.tsx
+│  │  │  ├─ CreateBookingForm.tsx
+│  │  │  ├─ MasterBookingsManager.tsx
+│  │  │  └─ TimeSlots.tsx
+│  │  ├─ favorites
+│  │  │  └─ FavoriteFilters.tsx
+│  │  ├─ layout
+│  │  │  ├─ Header.tsx
+│  │  │  ├─ Navigation.tsx
+│  │  │  └─ SideMenu.tsx
+│  │  ├─ profile
+│  │  │  ├─ ImageUpload.tsx
+│  │  │  └─ UserProfileCard.tsx
+│  │  ├─ schedule
+│  │  │  ├─ MasterWorkspace.tsx
+│  │  │  ├─ ScheduleManager.tsx
+│  │  │  └─ ScheduleSettingsDialog.tsx
+│  │  ├─ services
+│  │  │  ├─ CategorySelect.tsx
+│  │  │  ├─ CreateServiceForm.tsx
+│  │  │  ├─ FilterBar.tsx
+│  │  │  ├─ ImageUpload.tsx
+│  │  │  ├─ MasterInfo.tsx
+│  │  │  ├─ ServiceCard.tsx
+│  │  │  ├─ ServiceDetail.tsx
+│  │  │  ├─ ServiceFilters.tsx
+│  │  │  ├─ ServiceForm.tsx
+│  │  │  ├─ ServiceList.tsx
+│  │  │  └─ ServicePriceDisplay.tsx
+│  │  ├─ telegram
+│  │  │  ├─ TelegramAutoAuth.tsx
+│  │  │  ├─ TelegramHeader.tsx
+│  │  │  ├─ TelegramActionButton.tsx
+│  │  │  ├─ TelegramLayout.tsx
+│  │  │  └─ TelegramPopup.tsx
+│  │  ├─ ui
+│  │  │  ├─ Avatar.tsx
+│  │  │  ├─ CityDistrictSelect.tsx
+│  │  │  ├─ FilterSelect.tsx
+│  │  │  ├─ Tooltip.tsx
+│  │  │  ├─ alert-dialog.tsx
+│  │  │  ├─ alert.tsx
+│  │  │  ├─ badge.tsx
+│  │  │  ├─ button.tsx
+│  │  │  ├─ calendar.tsx
+│  │  │  ├─ card.tsx
+│  │  │  ├─ dialog.tsx
+│  │  │  ├─ heading.tsx
+│  │  │  ├─ input.tsx
+│  │  │  ├─ label.tsx
+│  │  │  ├─ scroll-area.tsx
+│  │  │  ├─ select.tsx
+│  │  │  ├─ separator.tsx
+│  │  │  ├─ skeleton.tsx
+│  │  │  ├─ switch.tsx
+│  │  │  ├─ textarea.tsx
+│  │  │  ├─ theme.ts
+│  │  │  ├─ toast.tsx
+│  │  │  ├─ toaster.tsx
+│  │  │  └─ use-toast.ts
+│  │  ├─ auth
+│  │  │  └─ TelegramLoginButton.tsx
+│  │  └─ TelegramClientProvider.tsx
+│  ├─ hooks
+│  │  ├─ useBookings.ts
+│  │  ├─ useFavorites.ts
+│  │  ├─ useFilters.ts
+│  │  ├─ useMasterBookings.ts
+│  │  ├─ useMasterSchedule.ts
+│  │  ├─ useTelegramAuth.ts
+│  │  ├─ useWebAppBackButton.ts
+│  │  ├─ useWebAppMainButton.ts
+│  │  └─ useTelegramUtils.ts
+│  ├─ lib
+│  │  ├─ date-utils.ts
+│  │  ├─ prisma.ts
+│  │  ├─ session.ts
+│  │  ├─ telegram-client.ts
+│  │  ├─ telegram-sdk.ts
+│  │  ├─ telegram.ts
+│  │  ├─ token.ts
+│  │  ├─ utils.ts
+│  │  ├─ client-token.ts
+│  │  ├─ edge-jwt.ts
+│  │  ├─ redirects.ts
+│  │  └─ profile-redirect.ts
+│  ├─ providers
+│  │  ├─ AuthProvider.tsx
+│  │  └─ QueryProvider.tsx
+│  ├─ store
+│  │  └─ auth.ts
+│  └─ types
+│     ├─ booking.ts
+│     ├─ errors.ts
+│     ├─ favorite.ts
+│     ├─ index.ts
+│     ├─ profile.ts
+│     ├─ schedule.ts
+│     ├─ telegram-sdk.d.ts
+│     └─ telegram.ts
+├─ eslint.config.mjs
+├─ next.config.js
+├─ package.json
+├─ package-lock.json
+├─ postcss.config.js
+├─ README.md
+└─ tailwind.config.js
+
+```
